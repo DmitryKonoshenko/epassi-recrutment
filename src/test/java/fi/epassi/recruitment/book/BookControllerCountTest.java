@@ -3,13 +3,18 @@ package fi.epassi.recruitment.book;
 import fi.epassi.recruitment.BaseIntegrationTest;
 import fi.epassi.recruitment.book.dto.BookCountDto;
 import fi.epassi.recruitment.book.model.BookModel;
+import fi.epassi.recruitment.book.model.BookShopBookModel;
+import fi.epassi.recruitment.book.model.BookShopModel;
 import fi.epassi.recruitment.book.repo.BookRepository;
+import fi.epassi.recruitment.book.repo.BooksShopBookRepository;
+import fi.epassi.recruitment.book.repo.BooksShopRepository;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.UUID;
 
 import static java.math.BigDecimal.TEN;
@@ -76,6 +81,11 @@ public class BookControllerCountTest extends BaseIntegrationTest {
 
     @Autowired
     private BookRepository bookRepository;
+
+    @Autowired
+    private BooksShopRepository booksShopRepository;
+    @Autowired
+    private BooksShopBookRepository booksShopBookRepository;
 
     @Test
     @SneakyThrows
@@ -214,7 +224,24 @@ public class BookControllerCountTest extends BaseIntegrationTest {
         bookRepository.save(BOOK_HOBBIT_COUNT);
         bookRepository.save(BOOK_FELLOWSHIP_COUNT);
         bookRepository.save(F_BOOK_COUNT);
-        bookRepository.save(S_BOOK_COUNT);
+        BookModel bookModel =  bookRepository.save(S_BOOK_COUNT);
+
+        BookShopModel bookShopModel = new BookShopModel();
+        bookShopModel.setAddress("qweqw");
+        bookShopModel.setCity("Espoo");
+        bookShopModel.setZip("123");
+//        booksShopRepository.save(bookShopModel);
+
+        BookShopBookModel bookShopBookModel = new BookShopBookModel();
+        bookShopBookModel.setBookModel(bookModel);
+        bookShopBookModel.setBookShopModel(bookShopModel);
+        bookShopBookModel.setCount(134L);
+//        booksShopBookRepository.save(bookShopBookModel);
+        bookShopModel.setBooks(new ArrayList<>());
+        bookShopModel.getBooks().add(bookShopBookModel);
+        booksShopRepository.save(bookShopModel);
+        var a = booksShopRepository.findAll();
+
 
         // When
         var requestUrl = getEndpointUrl(BASE_PATH_V1_BOOK_BY_AUTHOR);
@@ -233,5 +260,32 @@ public class BookControllerCountTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.response[0].count", is(110)))
                 .andExpect(jsonPath("$.response[1].count", is(240)))
                 .andExpect(jsonPath("$.response[2].count", is(300)));
+    }
+
+    @Test
+    @SneakyThrows
+    void shouldBeBrave() {
+        // Given
+        BookModel bookModel =  bookRepository.save(S_BOOK_COUNT);
+
+        BookShopModel bookShopModel = new BookShopModel();
+        bookShopModel.setAddress("qweqw");
+        bookShopModel.setCity("Espoo");
+        bookShopModel.setZip("123");
+        bookShopModel = booksShopRepository.save(bookShopModel);
+
+        BookShopBookModel bookShopBookModel = new BookShopBookModel();
+        bookShopBookModel.setBookModel(bookModel);
+        bookShopBookModel.setBookShopModel(bookShopModel);
+        bookShopBookModel.setCount(134L);
+        bookShopBookModel = booksShopBookRepository.save(bookShopBookModel);
+
+        bookShopModel.setBooks(new ArrayList<>());
+        bookShopModel.getBooks().add(bookShopBookModel);
+        booksShopRepository.save(bookShopModel);
+
+        var a = booksShopRepository.findAll();
+
+        Assert.isTrue(a.get(0).getBooks().get(0).getBookModel().equals(bookModel), "wrong Object");
     }
 }
