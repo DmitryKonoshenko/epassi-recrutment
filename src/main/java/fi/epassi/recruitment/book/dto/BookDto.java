@@ -1,11 +1,5 @@
-package fi.epassi.recruitment.book;
+package fi.epassi.recruitment.book.dto;
 
-import static java.sql.Types.VARCHAR;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -14,22 +8,15 @@ import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.JdbcTypeCode;
 
-@Entity
 @Data
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode
-@Table(name = "books")
-public class BookModel {
+@AllArgsConstructor
+public class BookDto {
 
-    @Id
-    @Column(name = "id", updatable = false, nullable = false, columnDefinition = "VARCHAR(36)")
-    @JdbcTypeCode(value = VARCHAR)
+    @NotNull
     private UUID isbn;
 
     @NotBlank

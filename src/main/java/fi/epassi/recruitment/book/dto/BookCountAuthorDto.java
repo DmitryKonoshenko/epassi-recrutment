@@ -1,32 +1,26 @@
-package fi.epassi.recruitment.book;
+package fi.epassi.recruitment.book.dto;
 
-import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import java.math.BigDecimal;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class BookDto {
-
+public class BookCountAuthorDto {
     @NotNull
     private UUID isbn;
 
     @NotBlank
-    private String title;
-
-    @NotBlank
     private String author;
 
-    @NotNull
-    @DecimalMin(value = "0.00", message = "Book price must be higher than 0.00")
-    private BigDecimal price;
-
+    @Min(value = 0, message = "Book count must be higher than 0")
+    private Long count;
 }
