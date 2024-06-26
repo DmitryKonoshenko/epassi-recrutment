@@ -6,13 +6,16 @@ import fi.epassi.recruitment.book.dto.BookCountTitleDto;
 import fi.epassi.recruitment.book.dto.BookDto;
 import fi.epassi.recruitment.book.model.BookModel;
 import fi.epassi.recruitment.book.repo.BookRepository;
+import fi.epassi.recruitment.book.repo.BookRepositoryPage;
 import fi.epassi.recruitment.exception.BookNotFoundException;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -21,6 +24,7 @@ import java.util.UUID;
 public class BookService {
 
     private final BookRepository bookRepository;
+    private final BookRepositoryPage bookRepositoryPage;
     private final BookCountMapper bookCountMapper;
 
     public UUID createBook(BookDto bookDto) {
@@ -47,13 +51,16 @@ public class BookService {
     }
 
 
-    public List<BookDto> getBooks(String author, String title) {
+    public List<BookDto> getBooks(String author, String title, Pageable pageable) {
         if (StringUtils.isNotBlank(author) && StringUtils.isNotBlank(title)) {
-            return bookRepository.findByAuthorAndTitle(author, title).stream().map(BookService::toBookDto).toList();
+            return Objects.nonNull(pageable) ? bookRepositoryPage.findByAuthorAndTitle(author, title, pageable).stream().map(BookService::toBookDto).toList()
+                    :bookRepository.findByAuthorAndTitle(author, title).stream().map(BookService::toBookDto).toList();
         } else if (StringUtils.isNotBlank(author) && StringUtils.isBlank(title)) {
-            return bookRepository.findByAuthor(author).stream().map(BookService::toBookDto).toList();
+            return Objects.nonNull(pageable) ? bookRepositoryPage.findByAuthor(author, pageable).stream().map(BookService::toBookDto).toList()
+                    : bookRepository.findByAuthor(author).stream().map(BookService::toBookDto).toList();
         } else if (StringUtils.isNotBlank(title) && StringUtils.isBlank(author)) {
-            return bookRepository.findByTitle(title).stream().map(BookService::toBookDto).toList();
+            return Objects.nonNull(pageable) ? bookRepositoryPage.findByTitle(title, pageable).stream().map(BookService::toBookDto).toList()
+                    : bookRepository.findByTitle(title).stream().map(BookService::toBookDto).toList();
         }
 
         return bookRepository.findAll().stream().map(BookService::toBookDto).toList();
@@ -99,11 +106,15 @@ public class BookService {
         throw new BookNotFoundException(bookDto.getIsbn().toString());
     }
 
-    public List<BookCountAuthorDto> getBooksCountByAuthor(String author) {
-        return bookRepository.findByAuthor(author).stream().map(bookCountMapper::toBookCountAuthorDto).toList();
+    public List<BookCountAuthorDto> getBooksCountByAuthor(String author, Pageable pageable) {
+        if(Objects.nonNull(pageable)){
+        return bookRepositoryPage.findByAuthor(author, pageable).stream().map(bookCountMapper::toBookCountAuthorDto).toList();
+        } else return bookRepository.findByAuthor(author).stream().map(bookCountMapper::toBookCountAuthorDto).toList();
     }
 
-    public List<BookCountTitleDto> getBooksCountByTitle(String title) {
-        return bookRepository.findByTitle(title).stream().map(bookCountMapper::toBookCountTitleDto).toList();
+    public List<BookCountTitleDto> getBooksCountByTitle(String title, Pageable pageable) {
+        if(Objects.nonNull(pageable)){
+            return bookRepositoryPage.findByTitle(title, pageable).stream().map(bookCountMapper::toBookCountTitleDto).toList();
+        } return bookRepository.findByTitle(title).stream().map(bookCountMapper::toBookCountTitleDto).toList();
     }
 }

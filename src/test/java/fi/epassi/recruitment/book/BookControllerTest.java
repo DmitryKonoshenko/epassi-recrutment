@@ -16,6 +16,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import fi.epassi.recruitment.BaseIntegrationTest;
+
+import java.math.BigDecimal;
 import java.util.UUID;
 
 import fi.epassi.recruitment.book.dto.BookDto;
@@ -30,13 +32,16 @@ class BookControllerTest extends BaseIntegrationTest {
     private static final String BASE_PATH_V1_BOOK = "/api/v1/books";
     private static final String AUTHOR = "author";
     private static final String TITLE = "title";
+    private static final String PAGE = "page";
+    private static final String SIZE = "size";
+    private static final String SORT = "sort";
     private static final String BASE_PATH_V1_BOOK_BY_ISBN = BASE_PATH_V1_BOOK + "/{isbn}";
 
     private static final BookModel BOOK_HOBBIT = BookModel.builder()
         .isbn(UUID.fromString("66737096-39ef-4a7c-aa4a-9fd018c14178"))
         .title("The Hobbit")
         .author("J.R.R Tolkien")
-        .price(TEN)
+        .price(new BigDecimal(11))
         .build();
 
     private static final BookModel BOOK_FELLOWSHIP = BookModel.builder()
@@ -45,6 +50,20 @@ class BookControllerTest extends BaseIntegrationTest {
         .author("J.R.R Tolkien")
         .price(TEN)
         .build();
+
+    private static final BookModel F_BOOK = BookModel.builder()
+            .isbn(UUID.fromString("556aa37d-ef9c-45d3-ba4a-a792c1232055"))
+            .title("1 book")
+            .author("J.R.R Tolkien")
+            .price(new BigDecimal(9))
+            .build();
+
+    private static final BookModel S_BOOK = BookModel.builder()
+            .isbn(UUID.fromString("556aa37d-ef9c-45d3-ba4a-a792c1232011"))
+            .title("2 book")
+            .author("J.R.R Tolkien")
+            .price(new BigDecimal(8))
+            .build();
 
     @Autowired
     private BookRepository bookRepository;
@@ -225,4 +244,31 @@ class BookControllerTest extends BaseIntegrationTest {
             .andExpect(jsonPath("$.title", is("Not Found")));
     }
 
+    @Test
+    @SneakyThrows
+    void shouldRespondWithBookWhenSearchingByAuthorAndPage() {
+        // Given
+        bookRepository.save(BOOK_HOBBIT);
+        bookRepository.save(BOOK_FELLOWSHIP);
+        bookRepository.save(F_BOOK);
+        bookRepository.save(S_BOOK);
+
+        // When
+        var requestUrl = getEndpointUrl(BASE_PATH_V1_BOOK);
+        var request = get(requestUrl)
+                .queryParam(AUTHOR, "J.R.R Tolkien")
+                .queryParam(PAGE, "0")
+                .queryParam(SIZE, "3")
+                .queryParam(SORT, "price")
+                .contentType(APPLICATION_JSON);
+        var response = mvc.perform(request);
+
+        // Then
+        response.andExpect(status().is2xxSuccessful())
+                .andExpect(jsonPath("$.response[0].author", is("J.R.R Tolkien")))
+                .andExpect(jsonPath("$.response[0].title", is(notNullValue())))
+                .andExpect(jsonPath("$.response[0].title", is("2 book")))
+                .andExpect(jsonPath("$.response[1].title", is("1 book")))
+                .andExpect(jsonPath("$.response[2].title", is("The Fellowship of the Rings")));
+    }
 }

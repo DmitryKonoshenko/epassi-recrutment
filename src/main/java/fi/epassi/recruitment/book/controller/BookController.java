@@ -4,12 +4,17 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import fi.epassi.recruitment.api.ApiResponse;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import fi.epassi.recruitment.book.BookService;
 import fi.epassi.recruitment.book.dto.BookDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,8 +37,11 @@ public class BookController {
     @GetMapping
     ApiResponse<List<BookDto>> getBooks(
         @RequestParam(value = "author", required = false) String author,
-        @RequestParam(value = "title", required = false) String title) {
-        return ApiResponse.ok(bookService.getBooks(author, title));
+        @RequestParam(value = "title", required = false) String title,
+        @RequestParam(value = "page", required = false) Integer page,
+        @RequestParam(value = "size", required = false) Integer size,
+        @RequestParam(value = "sort", required = false) String sort) {
+        return ApiResponse.ok(bookService.getBooks(author, title, getPage(page, size, sort)));
     }
 
     @PostMapping
@@ -57,6 +65,18 @@ public class BookController {
     ApiResponse<Void> deleteBookByIsbn(@PathVariable("isbn") @Validated UUID isbn) {
         bookService.deleteBookWithIsbn(isbn);
         return ApiResponse.ok();
+    }
+
+    private Pageable getPage(Integer page, Integer size, String sort) {
+        return getPageable(page, size, sort);
+    }
+
+    static Pageable getPageable(Integer page, Integer size, String sort) {
+        if (Objects.nonNull(page) && Objects.nonNull(size) && StringUtils.isNotBlank(sort)) {
+            return PageRequest.of(page, size, Sort.by(sort));
+        } else if (Objects.nonNull(page) && Objects.nonNull(size)) {
+            return PageRequest.of(page, size);
+        } else return null;
     }
 
 }
