@@ -1,3 +1,9 @@
+# Note:
+The reviewers of this assignment are creepy douchebags and will be looking at the possibility of simple code maintenance. My feedback was like this, though I fundamentally disagree with it:
+"The candidate understands the challenge at hand, and in most cases is able to deliver a working solution.
+However, upon a closer look from a technical perspective it shows that the solutions presented by the candidate are introducing technical debt in a way that the project would be hard to maintain and extend in the future.  Such approach is not production-ready, and would require a major refactor as we expect a clean approach on solutions.
+Due to the above, we are not able to continue with the candidate."
+
 # Epassi Recruitment App
 
 ## General information
